@@ -1,5 +1,7 @@
 import 'package:circular_seek_bar/circular_seek_bar.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:intl/intl.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:weather/layout/HomeLayout.dart';
@@ -35,28 +37,27 @@ Widget defaultFormField ({
 }
 
     ) => TextFormField(
-  controller: controller,
-  style: TextStyle(
-      color: color,
-      fontSize: 16
-  ),
-  keyboardType:type ,
-  obscureText: isPassword,
-  onFieldSubmitted:(s){
-    onSubmit!(s);
-  },
-  validator: (value) {
-    return validate!(value);
-  },
-  enabled: isClickable,
-
-  decoration: InputDecoration(
-    labelText: label,
-    labelStyle: TextStyle(
-        color: color,
-        fontSize: 15
-    ) ,
-    prefixIcon: Icon(
+       controller: controller,
+       style: TextStyle(
+           color: color,
+           fontSize: 16
+       ),
+       keyboardType:type ,
+       obscureText: isPassword,
+       onFieldSubmitted:(s){
+         onSubmit!(s);
+       },
+       validator: (value) {
+         return validate!(value);
+       },
+       enabled: isClickable,
+       decoration: InputDecoration(
+         labelText: label,
+         labelStyle: TextStyle(
+             color: color,
+             fontSize: 15
+         ) ,
+         prefixIcon: Icon(
       prefix,
       color: color,),
     suffixIcon: suffix!= null ? IconButton(
@@ -84,11 +85,13 @@ void NavigateTo(context,Widget)=>Navigator.push(
 Widget buildWeatherPage(weatherModel model,Forecastday forecastday,context,
     {isSearch = false})
 {
-  DateTime now = model.location!.localtime!;
-  String formattedTime = DateFormat.jm().format(now);
+  int now = DateTime.now().hour ;
+
+  DateTime localtime = model.location!.localtime!;
+  String formattedTime = DateFormat.jm().format(localtime);
   return Scaffold(
     body: Container(
-      decoration: model.location!.localtime!.hour>12?
+      decoration: now >5&&now <18?
        BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/sunrise.jpg'),
@@ -102,7 +105,8 @@ Widget buildWeatherPage(weatherModel model,Forecastday forecastday,context,
       ),
       child: Padding(
         padding:  EdgeInsets.symmetric(vertical: 4.h,horizontal: 1.h),
-        child: Column(
+        child: ListView(
+          scrollDirection: Axis.vertical,
           children: [
             isSearch==false?
               Row(
@@ -133,34 +137,40 @@ Widget buildWeatherPage(weatherModel model,Forecastday forecastday,context,
               ],
             ),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.location_on_outlined,
-                      color: Colors.white,
-                      size: 16.0,
-                    ),
-                    SizedBox(
-                      width: 5.0,
-                    ),
-                    isSearch==true?
-                    Text('${SearchCubit.get(context).translation}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Colors.white,
-                          fontSize: 27
+                SizedBox(
+                  width: 150,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.location_on_outlined,
+                        color: Colors.white,
+                        size: 16.0,
                       ),
-                    ):Text('${weatherCubit.get(context).translation}',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Colors.white,
-                          fontSize: 21
+                      SizedBox(
+                        width: 5.0,
                       ),
-                    ),
-                  ],
+                      isSearch==true?
+                      Text('${SearchCubit.get(context).translation}',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: Colors.white,
+                            fontSize: 27
+                        ),
+                      ):Text('${weatherCubit.get(context).translation}',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                            color: Colors.white,
+                            fontSize: 21
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Center(
+
+                SizedBox(
+                  width: 80,
                   child: Text(
-                    '           updated ${formattedTime }',
+                    'updated ${formattedTime }',textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: Colors.white,
                         fontSize: 9
@@ -225,7 +235,7 @@ Widget buildWeatherPage(weatherModel model,Forecastday forecastday,context,
                     model.current!.condition!.text=="Sunny"?
                     Icon(
                       Icons.wb_sunny,
-                      size: 27,
+                      size: 30,
                       color: Colors.orange,
                     ):Icon(
                       Icons.wb_cloudy,
@@ -383,74 +393,91 @@ Widget builddayItem(Forecastday model,context)
 Widget ComfortItem(Current model,context){
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text("  Humidity",
-          style: Theme.of(context).textTheme.bodySmall!.copyWith(
-              fontSize:18.0,
-              color: Colors.white
-          ),
-        ),
-        SizedBox(height: 2.h,),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Stack(
-              alignment: Alignment.bottomLeft,
-              children: [
-                CircularSeekBar(
-                  width: 140,
-                  height: 140,
-                  progress: model.humidity!.toDouble(),
-                  barWidth: 8,
-                  startAngle: 45,
-                  sweepAngle: 270,
-                  strokeCap: StrokeCap.butt,
-                  progressGradientColors: const [Colors.purple, Colors.indigo, Colors.blue],
-                  dashWidth: 1,
-                  dashGap: 2,
-                  animation: true,
-                  child: Center(
-                    child: Text("${model.humidity}%",
-                      style: TextStyle(
-                          fontSize: 28,
-                          color: Colors.white
+        Container(
+          width: 140,
+          height: 200,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text("Humidity",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontSize:18.0,
+                    color: Colors.white
+                ),
+              ),
+              SizedBox(height: 2.h,),
+              Stack(
+                alignment: Alignment.bottomCenter,
+                children: [
+                  CircularSeekBar(
+                    width: 140,
+                    height: 140,
+                    progress: model.humidity!.toDouble(),
+                    barWidth: 8,
+                    startAngle: 45,
+                    sweepAngle: 270,
+                    strokeCap: StrokeCap.butt,
+                    progressGradientColors: const [Colors.purple, Colors.indigo, Colors.blue],
+                    dashWidth: 1,
+                    dashGap: 2,
+                    animation: true,
+                    child: Center(
+                      child: Text("${model.humidity}%",
+                        style: TextStyle(
+                            fontSize: 28,
+                            color: Colors.white
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Text("        0",style: TextStyle(color: Colors.white),),
-                    Text("            100",style: TextStyle(color: Colors.white),)
-                  ],
-                )
+                  Container(
+                    width: 90,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                            alignment: AlignmentDirectional.topStart,
+                            child: Text("0",style: TextStyle(color: Colors.white),)),
+                        Spacer(),
+                        Align(
+                            alignment: AlignmentDirectional.topEnd,
+                            child: Text("100",style: TextStyle(color: Colors.white),))
+                      ],
+                    ),
+                  )
 
-              ],
-            ),
-            SizedBox(width: 10.h,),
-            Center(
-              child: Column(
-                children: [
-                  Text("Feels Like: ${model.feelslike_c}℃",
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        fontSize:12.0,
-                        color: Colors.white
-                    ),
-                  ),
-                  SizedBox(height: 1.h,),
-                  Text("UV index: ${model.uv} Low",
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        fontSize:12.0,
-                        color: Colors.white
-                    ),
-                  ),
+
                 ],
               ),
-            )
-          ],
+
+
+            ],
+          ),
         ),
+        SizedBox(width: 10.h,),
+        Center(
+          child: Column(
+            children: [
+              Text("Feels Like: ${model.feelslike_c}℃",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontSize:12.0,
+                    color: Colors.white
+                ),
+              ),
+              SizedBox(height: 1.h,),
+              Text("UV index: ${model.uv} Low",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    fontSize:12.0,
+                    color: Colors.white
+                ),
+              ),
+            ],
+          ),
+        )
       ],
     ),
   );
